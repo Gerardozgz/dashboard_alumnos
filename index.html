@@ -3,19 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Alumnos (Modo Diagnóstico)</title>
-    <style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background-color:#f4f4f9;margin:0;padding:20px}h1{text-align:center;color:#333}.filter-container{text-align:center;margin-bottom:30px}.filter-container label{font-weight:700;margin-right:10px}.filter-container select{padding:8px 12px;border-radius:6px;border:1px solid #ccc;font-size:1em}#dashboard-container{display:flex;flex-wrap:wrap;gap:20px;justify-content:center}.student-card{background-color:#fff;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,.1);padding:20px;width:320px;transition:transform .2s}.student-card:hover{transform:translateY(-5px)}.student-card h3{margin-top:0;color:#0056b3;border-bottom:2px solid #f0f0f0;padding-bottom:10px}.student-card ul{list-style-type:none;padding:0}.student-card li{background-color:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px;margin-bottom:10px;font-size:1em}.measure-title{font-weight:700;color:#343a40}.measure-dates{font-size:.8em;color:#6c757d;margin:4px 0;display:block}.measure-comment{font-size:.9em;color:#495057;margin-top:8px;border-left:3px solid #007bff;padding-left:10px}</style>
+    <title>Dashboard de Alumnos</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .filter-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .filter-container label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .filter-container select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+        #dashboard-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .student-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 320px;
+            transition: transform 0.2s;
+        }
+        .student-card:hover {
+            transform: translateY(-5px);
+        }
+        .student-card h3 { margin-top: 0; color: #0056b3; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        .student-card ul { list-style-type: none; padding: 0; }
+        .student-card li { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 12px; margin-bottom: 10px; font-size: 1em; }
+        .measure-title { font-weight: bold; color: #343a40; }
+        .measure-dates { font-size: 0.8em; color: #6c757d; margin: 4px 0; display: block; }
+        .measure-comment { font-size: 0.9em; color: #495057; margin-top: 8px; border-left: 3px solid #007bff; padding-left: 10px; }
+    </style>
 </head>
 <body>
+
     <h1>Dashboard de Medidas Educativas</h1>
+
     <div class="filter-container">
         <label for="class-filter">Filtrar por clase:</label>
-        <select id="class-filter" onchange="filterStudents()"></select>
+        <select id="class-filter" onchange="filterStudents()">
+            </select>
     </div>
-    <div id="dashboard-container"><p>Realizando diagnóstico...</p></div>
+
+    <div id="dashboard-container">
+        <p>Cargando datos de los alumnos...</p>
+    </div>
 
     <script>
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=12873044&single=true&output=csv';
+
         let allStudents = {};
 
         async function loadStudentData() {
@@ -24,13 +79,6 @@
                 if (!response.ok) throw new Error('Error al cargar los datos.');
                 
                 const csvText = await response.text();
-                // --- INICIO DE CÓDIGO DE DIAGNÓSTICO ---
-                const firstLine = csvText.split('\n')[0].trim();
-                const headers = firstLine.split(',');
-                console.log("--- ENCABEZADOS DETECTADOS (copia esta línea) ---");
-                console.log(headers);
-                // --- FIN DE CÓDIGO DE DIAGNÓSTICO ---
-                
                 const data = parseCSV(csvText);
 
                 data.forEach(row => {
@@ -54,17 +102,112 @@
                 displayDashboards(allStudents);
 
             } catch (error) {
-                document.getElementById('dashboard-container').innerHTML = `<p style="color: red;">Diagnóstico fallido: ${error.message}</p>`;
+                document.getElementById('dashboard-container').innerHTML = `<p style="color: red;">${error.message}</p>`;
                 console.error(error);
             }
         }
 
-        // El resto de funciones no cambian
-        function populateClassFilter(){const filter=document.getElementById("class-filter"),classes=new Set;for(const studentName in allStudents)allStudents[studentName].class&&classes.add(allStudents[studentName].class);filter.innerHTML='<option value="todos">Todas las clases</option>',classes.forEach(className=>{const option=document.createElement("option");option.value=className,option.textContent=className,filter.appendChild(option)})}
-        function filterStudents(){const selectedClass=document.getElementById("class-filter").value;if("todos"===selectedClass)return void displayDashboards(allStudents);const filteredStudents={};for(const studentName in allStudents)allStudents[studentName].class===selectedClass&&(filteredStudents[studentName]=allStudents[studentName]);displayDashboards(filteredStudents)}
-        function displayDashboards(studentsToShow){const container=document.getElementById("dashboard-container");if(container.innerHTML="",0===Object.keys(studentsToShow).length)return void(container.innerHTML="<p>No hay alumnos para mostrar.</p>");for(const studentName in studentsToShow){const studentData=studentsToShow[studentName],card=document.createElement("div");card.className="student-card";const title=document.createElement("h3");title.textContent=studentData.name;const measuresList=document.createElement("ul");studentData.measures.forEach(measure=>{const listItem=document.createElement("li"),measureTitle=document.createElement("span");measureTitle.className="measure-title",measureTitle.textContent=measure.title;const measureDates=document.createElement("span");measureDates.className="measure-dates",measureDates.textContent=`(${measure.startDate} - ${measure.endDate})`;const measureComment=document.createElement("p");measureComment.className="measure-comment",measureComment.textContent=measure.comment,listItem.appendChild(measureTitle),listItem.appendChild(measureDates),measure.comment&&listItem.appendChild(measureComment),measuresList.appendChild(listItem)}),card.appendChild(title),card.appendChild(measuresList),container.appendChild(card)}}
-        function parseCSV(text){const lines=text.trim().split("\n"),headers=lines[0].split(",").map(h=>h.trim()),result=[];for(let i=1;i<lines.length;i++){if(""===lines[i].trim())continue;const obj={},currentline=lines[i].split(",");for(let j=0;j<headers.length;j++)obj[headers[j]]=(currentline[j]||"").trim();result.push(obj)}return result}
+        function populateClassFilter() {
+            const filter = document.getElementById('class-filter');
+            const classes = new Set();
+            for (const studentName in allStudents) {
+                if (allStudents[studentName].class) {
+                    classes.add(allStudents[studentName].class);
+                }
+            }
+
+            // Convertimos el Set a un Array y lo ordenamos
+            const sortedClasses = [...classes].sort();
+
+            filter.innerHTML = '<option value="todos">Todas las clases</option>';
+
+            // Usamos el nuevo array ya ordenado para crear las opciones
+            sortedClasses.forEach(className => {
+                const option = document.createElement('option');
+                option.value = className;
+                option.textContent = className;
+                filter.appendChild(option);
+            });
+        }
+
+        function filterStudents() {
+            const selectedClass = document.getElementById('class-filter').value;
+            const filteredStudents = {};
+
+            if (selectedClass === 'todos') {
+                displayDashboards(allStudents);
+                return;
+            }
+
+            for (const studentName in allStudents) {
+                if (allStudents[studentName].class === selectedClass) {
+                    filteredStudents[studentName] = allStudents[studentName];
+                }
+            }
+            displayDashboards(filteredStudents);
+        }
+        
+        function displayDashboards(studentsToShow) {
+            const container = document.getElementById('dashboard-container');
+            container.innerHTML = '';
+            
+            if (Object.keys(studentsToShow).length === 0) {
+                 container.innerHTML = '<p>No hay alumnos para mostrar.</p>';
+                 return;
+            }
+
+            for (const studentName in studentsToShow) {
+                const studentData = studentsToShow[studentName];
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                const title = document.createElement('h3');
+                title.textContent = studentData.name;
+                const measuresList = document.createElement('ul');
+
+                studentData.measures.forEach(measure => {
+                    const listItem = document.createElement('li');
+                    const measureTitle = document.createElement('span');
+                    measureTitle.className = 'measure-title';
+                    measureTitle.textContent = measure.title;
+                    const measureDates = document.createElement('span');
+                    measureDates.className = 'measure-dates';
+                    measureDates.textContent = `(${measure.startDate} - ${measure.endDate})`;
+                    const measureComment = document.createElement('p');
+                    measureComment.className = 'measure-comment';
+                    measureComment.textContent = measure.comment;
+
+                    listItem.appendChild(measureTitle);
+                    listItem.appendChild(measureDates);
+                    if (measure.comment) {
+                        listItem.appendChild(measureComment);
+                    }
+                    measuresList.appendChild(listItem);
+                });
+                
+                card.appendChild(title);
+                card.appendChild(measuresList);
+                container.appendChild(card);
+            }
+        }
+        
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const result = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                const obj = {};
+                const currentline = lines[i].split(',');
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = (currentline[j] || '').trim();
+                }
+                result.push(obj);
+            }
+            return result;
+        }
+
         loadStudentData();
     </script>
+
 </body>
 </html>
