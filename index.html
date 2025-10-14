@@ -51,7 +51,18 @@
         .student-card li { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 12px; margin-bottom: 10px; font-size: 1em; }
         .measure-title { font-weight: bold; color: #343a40; }
         .measure-dates { font-size: 0.8em; color: #6c757d; margin: 4px 0; display: block; }
-        .measure-comment { font-size: 0.9em; color: #495057; margin-top: 8px; border-left: 3px solid #007bff; padding-left: 10px; }
+        
+        /* --- NUEVOS ESTILOS PARA LOS COMENTARIOS --- */
+        .comments-container {
+            margin-top: 8px;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .comment-item {
+            font-size: 0.9em;
+            color: #495057;
+            margin-bottom: 4px; /* Espacio entre comentarios */
+        }
     </style>
 </head>
 <body>
@@ -60,8 +71,7 @@
 
     <div class="filter-container">
         <label for="class-filter">Filtrar por clase:</label>
-        <select id="class-filter" onchange="filterStudents()">
-            </select>
+        <select id="class-filter" onchange="filterStudents()"></select>
     </div>
 
     <div id="dashboard-container">
@@ -115,13 +125,8 @@
                     classes.add(allStudents[studentName].class);
                 }
             }
-
-            // Convertimos el Set a un Array y lo ordenamos
             const sortedClasses = [...classes].sort();
-
             filter.innerHTML = '<option value="todos">Todas las clases</option>';
-
-            // Usamos el nuevo array ya ordenado para crear las opciones
             sortedClasses.forEach(className => {
                 const option = document.createElement('option');
                 option.value = className;
@@ -172,14 +177,31 @@
                     const measureDates = document.createElement('span');
                     measureDates.className = 'measure-dates';
                     measureDates.textContent = `(${measure.startDate} - ${measure.endDate})`;
-                    const measureComment = document.createElement('p');
-                    measureComment.className = 'measure-comment';
-                    measureComment.textContent = measure.comment;
 
                     listItem.appendChild(measureTitle);
                     listItem.appendChild(measureDates);
+
+                    // --- CAMBIO CLAVE AQUÍ ---
+                    // 1. Verificamos si hay algún comentario.
                     if (measure.comment) {
-                        listItem.appendChild(measureComment);
+                        // 2. Creamos un contenedor para todos los comentarios.
+                        const commentsContainer = document.createElement('div');
+                        commentsContainer.className = 'comments-container';
+
+                        // 3. Dividimos el texto por los saltos de línea (\n) para obtener un array.
+                        const comments = measure.comment.split('\n');
+
+                        // 4. Creamos un párrafo para cada comentario individual.
+                        comments.forEach(commentText => {
+                            if (commentText.trim() !== '') { // Ignoramos líneas vacías
+                                const commentP = document.createElement('p');
+                                commentP.className = 'comment-item';
+                                commentP.textContent = commentText;
+                                commentsContainer.appendChild(commentP);
+                            }
+                        });
+                        
+                        listItem.appendChild(commentsContainer);
                     }
                     measuresList.appendChild(listItem);
                 });
@@ -197,9 +219,15 @@
             for (let i = 1; i < lines.length; i++) {
                 if (lines[i].trim() === '') continue;
                 const obj = {};
-                const currentline = lines[i].split(',');
+                // Corrección para celdas con comas: parsear la línea de forma más robusta
+                const currentline = lines[i].match(/(".*?"|[^",\n\r]+)(?=\s*,|\s*$)/g) || [''];
                 for (let j = 0; j < headers.length; j++) {
-                    obj[headers[j]] = (currentline[j] || '').trim();
+                    let value = (currentline[j] || '').trim();
+                    // Quitar comillas si las hay
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        value = value.substring(1, value.length - 1);
+                    }
+                    obj[headers[j]] = value;
                 }
                 result.push(obj);
             }
