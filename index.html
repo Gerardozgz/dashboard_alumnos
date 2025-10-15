@@ -122,4 +122,19 @@
                     measuresList.appendChild(listItem);
                 });
                 
-                card.appendChild
+                card.appendChild(title);
+                card.appendChild(measuresList);
+                container.appendChild(card);
+            }
+        }
+        
+        async function loadStudentData(csvUrl){document.getElementById("dashboard-container").innerHTML='<p>Cargando datos del curso...</p>',document.getElementById("class-filter-container").style.display="none",allStudents={};try{const response=await fetch(csvUrl);if(!response.ok)throw new Error("Error al cargar los datos.");const csvText=await response.text(),data=parseCSV(csvText);data.forEach(row=>{const studentName=row.Nombre_Alumno;allStudents[studentName]||(allStudents[studentName]={name:studentName,class:row.Clase,measures:[]}),allStudents[studentName].measures.push({title:row.Medida_Educativa,comment:row.Comentario,startDate:row.Fecha_Inicio,endDate:row.Fecha_Fin})}),populateClassFilter(),displayDashboards(allStudents),document.getElementById("class-filter-container").style.display="block"}catch(error){document.getElementById("dashboard-container").innerHTML=`<p style="color: red;">${error.message}</p>`}}
+        function handleCourseChange(){const selectedCourse=document.getElementById("course-filter").value;if(selectedCourse){loadStudentData(courseUrls[selectedCourse])}else{document.getElementById("dashboard-container").innerHTML='<p>Por favor, selecciona un curso para empezar.</p>',document.getElementById("class-filter-container").style.display="none"}}
+        function populateCourseFilter(){const courseFilter=document.getElementById("course-filter");courseFilter.innerHTML='<option value="">-- Elige un curso --</option>';for(const courseName in courseUrls){const option=document.createElement("option");option.value=courseName,option.textContent=courseName,courseFilter.appendChild(option)}}
+        function populateClassFilter(){const classFilter=document.getElementById("class-filter"),classes=new Set;for(const studentName in allStudents)allStudents[studentName].class&&classes.add(allStudents[studentName].class);const sortedClasses=[...classes].sort();classFilter.innerHTML='<option value="todos">Todas las clases</option>',sortedClasses.forEach(className=>{const option=document.createElement("option");option.value=className,option.textContent=className,classFilter.appendChild(option)})}
+        function filterStudents(){const selectedClass=document.getElementById("class-filter").value;if("todos"===selectedClass)return void displayDashboards(allStudents);const filteredStudents={};for(const studentName in allStudents)allStudents[studentName].class===selectedClass&&(filteredStudents[studentName]=allStudents[studentName]);displayDashboards(filteredStudents)}
+        function parseCSV(text){const result=[],rows=text.trim().split(/\r?\n(?=(?:[^"]*\"[^"]*\")*[^\"]*$)/);if(rows.length<2)return result;const headers=rows[0].split(",").map(h=>h.trim());for(let i=1;i<rows.length;i++){if(""===rows[i].trim())continue;const obj={},values=rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)||[];for(let j=0;j<headers.length;j++){if(!headers[j])continue;let value=values[j]||"";value=value.trim(),"\""===value.startsWith('"')&&"\""===value.endsWith('"')&&(value=value.substring(1,value.length-1)),value=value.replace(/""/g,'"'),obj[headers[j]]=value}result.push(obj)}return result}
+        populateCourseFilter();
+    </script>
+</body>
+</html>
