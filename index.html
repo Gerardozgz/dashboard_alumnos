@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
+        /* Versión 2.0 - Forzar actualización de caché */
+        
         :root {
             --color-fondo: #f8f9fa;
             --color-blanco: #ffffff;
@@ -65,7 +67,7 @@
         .student-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); }
         .student-card h3 { margin-top: 0; color: var(--color-principal); border-bottom: 1px solid var(--color-borde); padding-bottom: 15px; margin-bottom: 15px; font-weight: 600; }
         
-        /* --- CAMBIO CLAVE AQUÍ --- */
+        /* --- ESTA ES LA SECCIÓN CLAVE --- */
         .student-card ul {
             display: flex;       /* Convierte la lista en un contenedor flexible */
             flex-wrap: wrap;     /* Permite que los elementos salten de línea */
@@ -80,10 +82,9 @@
             border-radius: 8px;
             padding: 15px;
             font-size: 1em;
-            /* Ya no necesitamos margen, 'gap' se encarga de todo */
             margin-bottom: 0; 
         }
-        /* --- FIN DEL CAMBIO --- */
+        /* --- FIN DE LA SECCIÓN CLAVE --- */
 
         .measure-header { display: flex; align-items: center; gap: 10px; }
         .status-light { height: 12px; width: 12px; border-radius: 50%; flex-shrink: 0; }
@@ -114,7 +115,6 @@
     <div id="dashboard-container"><p>Por favor, selecciona un curso para empezar.</p></div>
 
     <script>
-        // El JavaScript no cambia, es exactamente el mismo
         const courseUrls = {"1º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=12873044&single=true&output=csv","2º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=586029925&single=true&output=csv","3º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=932856573&single=true&output=csv","4º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=889532458&single=true&output=csv","1º BTO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=1339435516&single=true&output=csv","2º BTO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=732396135&single=true&output=csv"};
         let allStudents = {};
         function handleCourseChange(){const e=document.getElementById("course-filter").value;e?loadStudentData(courseUrls[e]):(document.getElementById("dashboard-container").innerHTML='<p>Por favor, selecciona un curso para empezar.</p>',document.getElementById("class-filter-container").style.display="none")}
