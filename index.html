@@ -12,16 +12,24 @@
         .filter-container label { font-weight: bold; margin-right: 10px; display: block; margin-bottom: 5px; }
         .filter-container select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
         
+        /* --- CAMBIO PRINCIPAL PARA EL DISEÑO MASONRY --- */
         #dashboard-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            /* --- CAMBIO CLAVE AQUÍ --- */
-            align-items: flex-start; /* Evita que las fichas se estiren */
+            column-count: 4; /* 4 columnas en pantallas grandes */
+            column-gap: 20px; /* Espacio entre columnas */
         }
-
-        .student-card { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 20px; width: 320px; transition: transform 0.2s; }
+        .student-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px; /* Espacio vertical entre fichas */
+            display: inline-block; /* Necesario para que las columnas funcionen */
+            width: 100%; /* La ficha ocupa el 100% de su columna */
+            box-sizing: border-box; /* Importante para que el padding no desborde */
+            transition: transform 0.2s;
+        }
+        /* --- FIN DEL CAMBIO PRINCIPAL --- */
+        
         .student-card:hover { transform: translateY(-5px); }
         .student-card h3 { margin-top: 0; color: #0056b3; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
         .student-card ul { list-style-type: none; padding: 0; }
@@ -36,6 +44,17 @@
         .measure-dates { font-size: 0.8em; color: #6c757d; margin: 4px 0; display: block; }
         .comments-container { margin-top: 8px; border-left: 3px solid #007bff; padding-left: 10px; }
         .comment-item { font-size: 0.9em; color: #495057; margin-bottom: 4px; }
+
+        /* --- NUEVO: Media Queries para hacerlo responsivo --- */
+        @media (max-width: 1200px) {
+            #dashboard-container { column-count: 3; }
+        }
+        @media (max-width: 900px) {
+            #dashboard-container { column-count: 2; }
+        }
+        @media (max-width: 600px) {
+            #dashboard-container { column-count: 1; }
+        }
     </style>
 </head>
 <body>
