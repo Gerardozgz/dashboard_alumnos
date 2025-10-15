@@ -52,7 +52,6 @@
         .measure-title { font-weight: bold; color: #343a40; }
         .measure-dates { font-size: 0.8em; color: #6c757d; margin: 4px 0; display: block; }
         
-        /* --- NUEVOS ESTILOS PARA LOS COMENTARIOS --- */
         .comments-container {
             margin-top: 8px;
             border-left: 3px solid #007bff;
@@ -61,7 +60,7 @@
         .comment-item {
             font-size: 0.9em;
             color: #495057;
-            margin-bottom: 4px; /* Espacio entre comentarios */
+            margin-bottom: 4px;
         }
     </style>
 </head>
@@ -181,19 +180,13 @@
                     listItem.appendChild(measureTitle);
                     listItem.appendChild(measureDates);
 
-                    // --- CAMBIO CLAVE AQUÍ ---
-                    // 1. Verificamos si hay algún comentario.
                     if (measure.comment) {
-                        // 2. Creamos un contenedor para todos los comentarios.
                         const commentsContainer = document.createElement('div');
                         commentsContainer.className = 'comments-container';
-
-                        // 3. Dividimos el texto por los saltos de línea (\n) para obtener un array.
                         const comments = measure.comment.split('\n');
 
-                        // 4. Creamos un párrafo para cada comentario individual.
                         comments.forEach(commentText => {
-                            if (commentText.trim() !== '') { // Ignoramos líneas vacías
+                            if (commentText.trim() !== '') {
                                 const commentP = document.createElement('p');
                                 commentP.className = 'comment-item';
                                 commentP.textContent = commentText;
@@ -212,21 +205,32 @@
             }
         }
         
+        // --- FUNCIÓN parseCSV MEJORADA Y MÁS ROBUSTA ---
         function parseCSV(text) {
-            const lines = text.trim().split('\n');
-            const headers = lines[0].split(',').map(h => h.trim());
             const result = [];
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i].trim() === '') continue;
+            // Regex para separar filas, ignorando saltos de línea dentro de comillas
+            const rows = text.trim().split(/\r?\n(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
+            if (rows.length < 2) return result;
+
+            const headers = rows[0].split(',').map(h => h.trim());
+            
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i].trim() === '') continue;
                 const obj = {};
-                // Corrección para celdas con comas: parsear la línea de forma más robusta
-                const currentline = lines[i].match(/(".*?"|[^",\n\r]+)(?=\s*,|\s*$)/g) || [''];
+                // Regex para separar columnas, respetando las comillas
+                const values = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+
                 for (let j = 0; j < headers.length; j++) {
-                    let value = (currentline[j] || '').trim();
-                    // Quitar comillas si las hay
+                    if (!headers[j]) continue;
+                    let value = (values[j] || '').trim();
+                    
+                    // Quita las comillas del principio y del final
                     if (value.startsWith('"') && value.endsWith('"')) {
                         value = value.substring(1, value.length - 1);
                     }
+                    // Reemplaza las comillas dobles (escapadas) por una sola comilla
+                    value = value.replace(/""/g, '"');
+                    
                     obj[headers[j]] = value;
                 }
                 result.push(obj);
