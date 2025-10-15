@@ -179,15 +179,12 @@
                     
                     listItem.appendChild(measureHeader);
                     listItem.appendChild(measureDates);
-
-                    // --- LÓGICA CORREGIDA Y DEFINITIVA ---
+                    
                     if (measure.comment && measure.comment.trim() !== '') {
-                        // 1. Separamos los comentarios y filtramos los que estén vacíos.
                         const validComments = measure.comment.split('||')
                             .map(c => c.trim())
                             .filter(c => c !== '');
 
-                        // 2. SOLO si queda al menos un comentario válido, creamos la caja.
                         if (validComments.length > 0) {
                             const commentsContainer = document.createElement('div');
                             commentsContainer.className = 'comments-container';
