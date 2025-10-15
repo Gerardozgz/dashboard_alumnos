@@ -11,8 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
-        /* Versión 2.0 - Forzar actualización de caché */
-        
         :root {
             --color-fondo: #f8f9fa;
             --color-blanco: #ffffff;
@@ -44,11 +42,10 @@
         .filter-container label { font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--color-texto-secundario); }
         .filter-container select { padding: 10px 15px; border-radius: 8px; border: 1px solid var(--color-borde); font-size: 1em; background-color: var(--color-blanco); }
         
+        /* --- ESTILOS PARA MASONRY --- */
         #dashboard-container {
             max-width: 1600px;
             margin: 0 auto;
-            column-count: 4;
-            column-gap: 20px;
         }
 
         .student-card {
@@ -57,21 +54,20 @@
             box-shadow: var(--sombra-suave);
             padding: 20px;
             margin-bottom: 20px;
-            display: inline-block;
-            width: 100%;
+            width: 320px; /* Ancho fijo para cada ficha */
             box-sizing: border-box;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             border-top: 4px solid var(--color-principal);
         }
+        /* --- FIN DE LA SECCIÓN CSS --- */
         
         .student-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); }
         .student-card h3 { margin-top: 0; color: var(--color-principal); border-bottom: 1px solid var(--color-borde); padding-bottom: 15px; margin-bottom: 15px; font-weight: 600; }
         
-        /* --- ESTA ES LA SECCIÓN CLAVE --- */
         .student-card ul {
-            display: flex;       /* Convierte la lista en un contenedor flexible */
-            flex-wrap: wrap;     /* Permite que los elementos salten de línea */
-            gap: 10px;           /* Espacio uniforme entre las "etiquetas" */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             list-style-type: none;
             padding: 0;
         }
@@ -84,7 +80,6 @@
             font-size: 1em;
             margin-bottom: 0; 
         }
-        /* --- FIN DE LA SECCIÓN CLAVE --- */
 
         .measure-header { display: flex; align-items: center; gap: 10px; }
         .status-light { height: 12px; width: 12px; border-radius: 50%; flex-shrink: 0; }
@@ -94,10 +89,6 @@
         .measure-dates { font-size: 0.8em; color: var(--color-texto-secundario); margin-top: 4px; display: block; }
         .comments-container { margin-top: 12px; border-left: 3px solid var(--color-principal); padding-left: 12px; }
         .comment-item { font-size: 0.9em; color: #495057; margin-bottom: 5px; padding: 0; margin-block-start: 0; margin-block-end: 5px; }
-
-        @media (max-width: 1200px) { #dashboard-container { column-count: 3; } }
-        @media (max-width: 900px) { #dashboard-container { column-count: 2; } }
-        @media (max-width: 600px) { #dashboard-container { column-count: 1; } }
     </style>
 </head>
 <body>
@@ -114,14 +105,33 @@
     </div>
     <div id="dashboard-container"><p>Por favor, selecciona un curso para empezar.</p></div>
 
+    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+
     <script>
         const courseUrls = {"1º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=12873044&single=true&output=csv","2º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=586029925&single=true&output=csv","3º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=932856573&single=true&output=csv","4º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=889532458&single=true&output=csv","1º BTO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=1339435516&single=true&output=csv","2º BTO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=732396135&single=true&output=csv"};
         let allStudents = {};
-        function handleCourseChange(){const e=document.getElementById("course-filter").value;e?loadStudentData(courseUrls[e]):(document.getElementById("dashboard-container").innerHTML='<p>Por favor, selecciona un curso para empezar.</p>',document.getElementById("class-filter-container").style.display="none")}
+
+        // 2. CREAMOS UNA VARIABLE GLOBAL PARA MASONRY
+        let msnry;
+
+        function displayDashboards(e){const t=document.getElementById("dashboard-container");if(t.innerHTML="",0===Object.keys(e).length)return void(t.innerHTML="<p>No hay alumnos para mostrar.</p>");for(const o in e){const n=e[o],a=document.createElement("div");a.className="student-card";const d=document.createElement("h3");d.textContent=n.name;const s=document.createElement("ul");s.className="measures-list",n.measures.forEach(e=>{const o=document.createElement("li"),n=document.createElement("div");n.className="measure-header";const d=document.createElement("span");d.className="status-light",e.endDate&&""!==e.endDate.trim()&&"-"!==e.endDate.trim()?d.classList.add("status-red"):d.classList.add("status-green");const c=document.createElement("span");c.className="measure-title",c.textContent=e.title,n.appendChild(d),n.appendChild(c);const i=document.createElement("span");i.className="measure-dates",i.textContent=`(${e.startDate||""} - ${e.endDate||""})`,o.appendChild(n),o.appendChild(i),e.comment&&""!==e.comment.trim()&&"-"!==e.comment.trim()&&(()=>{const t=e.comment.split("||").map(e=>e.trim()).filter(e=>""!==e);if(t.length>0){const e=document.createElement("div");e.className="comments-container",t.forEach(t=>{const o=document.createElement("p");o.className="comment-item",o.textContent=t,e.appendChild(o)}),o.appendChild(e)}})(),s.appendChild(o)}),a.appendChild(d),a.appendChild(s),t.appendChild(a)}
+            
+            // --- 3. INICIALIZAMOS O RECARGAMOS MASONRY ---
+            // Usamos un pequeño retraso para asegurar que todas las fichas están en la página
+            setTimeout(() => {
+                msnry = new Masonry( t, {
+                    itemSelector: '.student-card',
+                    gutter: 20,
+                    fitWidth: true // ¡La clave para que se centre!
+                });
+            }, 100);
+        }
+        
+        // El resto de funciones no cambian
         async function loadStudentData(e){document.getElementById("dashboard-container").innerHTML='<p>Cargando datos del curso...</p>',document.getElementById("class-filter-container").style.display="none",allStudents={};try{const t=await fetch(e);if(!t.ok)throw new Error("Error al cargar los datos.");const o=await t.text(),n=parseCSV(o);n.forEach(e=>{const t=e.Nombre_Alumno;allStudents[t]||(allStudents[t]={name:t,class:e.Clase,measures:[]}),allStudents[t].measures.push({title:e.Medida_Educativa,comment:e.Comentario,startDate:e.Fecha_Inicio,endDate:e.Fecha_Fin})}),populateClassFilter(),displayDashboards(allStudents),document.getElementById("class-filter-container").style.display="block"}catch(e){document.getElementById("dashboard-container").innerHTML=`<p style="color: red;">${e.message}</p>`}}
+        function handleCourseChange(){const e=document.getElementById("course-filter").value;e?loadStudentData(courseUrls[e]):(document.getElementById("dashboard-container").innerHTML='<p>Por favor, selecciona un curso para empezar.</p>',document.getElementById("class-filter-container").style.display="none")}
         function populateCourseFilter(){const e=document.getElementById("course-filter");e.innerHTML='<option value="">-- Elige un curso --</option>';for(const t in courseUrls){const o=document.createElement("option");o.value=t,o.textContent=t,e.appendChild(o)}}
         function populateClassFilter(){const e=document.getElementById("class-filter"),t=new Set;for(const o in allStudents)allStudents[o].class&&t.add(allStudents[o].class);const o=[...t].sort();e.innerHTML='<option value="todos">Todas las clases</option>',o.forEach(t=>{const o=document.createElement("option");o.value=t,o.textContent=t,e.appendChild(o)})}
-        function displayDashboards(e){const t=document.getElementById("dashboard-container");if(t.innerHTML="",0===Object.keys(e).length)return void(t.innerHTML="<p>No hay alumnos para mostrar.</p>");for(const o in e){const n=e[o],a=document.createElement("div");a.className="student-card";const d=document.createElement("h3");d.textContent=n.name;const s=document.createElement("ul");n.measures.forEach(e=>{const o=document.createElement("li"),n=document.createElement("div");n.className="measure-header";const d=document.createElement("span");d.className="status-light",e.endDate&&""!==e.endDate.trim()&&"-"!==e.endDate.trim()?d.classList.add("status-red"):d.classList.add("status-green");const c=document.createElement("span");c.className="measure-title",c.textContent=e.title,n.appendChild(d),n.appendChild(c);const i=document.createElement("span");i.className="measure-dates",i.textContent=`(${e.startDate||""} - ${e.endDate||""})`,o.appendChild(n),o.appendChild(i),e.comment&&""!==e.comment.trim()&&"-"!==e.comment.trim()&&(()=>{const t=e.comment.split("||").map(e=>e.trim()).filter(e=>""!==e);if(t.length>0){const e=document.createElement("div");e.className="comments-container",t.forEach(t=>{const o=document.createElement("p");o.className="comment-item",o.textContent=t,e.appendChild(o)}),o.appendChild(e)}})(),s.appendChild(o)}),a.appendChild(d),a.appendChild(s),t.appendChild(a)}}
         function filterStudents(){const e=document.getElementById("class-filter").value;if("todos"===e)return void displayDashboards(allStudents);const t={};for(const o in allStudents)allStudents[o].class===e&&(t[o]=allStudents[o]);displayDashboards(t)}
         function parseCSV(e){const t=[],o=e.trim().split(/\r?\n(?=(?:[^"]*\"[^"]*\")*[^\"]*$)/);if(o.length<2)return t;const n=o[0].split(",").map(e=>e.trim());for(let e=1;e<o.length;e++){if(""===o[e].trim())continue;const a={},d=o[e].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)||[];for(let e=0;e<n.length;e++){if(!n[e])continue;let t=d[e]||"";t=t.trim(),'"'===t.startsWith('"')&&'"'===t.endsWith('"')&&(t=t.substring(1,t.length-1)),t=t.replace(/""/g,'"'),a[n[e]]=t}t.push(a)}return t}
         populateCourseFilter();
