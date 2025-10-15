@@ -11,7 +11,16 @@
         .filter-container { text-align: center; }
         .filter-container label { font-weight: bold; margin-right: 10px; display: block; margin-bottom: 5px; }
         .filter-container select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
-        #dashboard-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        
+        #dashboard-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            /* --- CAMBIO CLAVE AQUÍ --- */
+            align-items: flex-start; /* Evita que las fichas se estiren */
+        }
+
         .student-card { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 20px; width: 320px; transition: transform 0.2s; }
         .student-card:hover { transform: translateY(-5px); }
         .student-card h3 { margin-top: 0; color: #0056b3; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
@@ -160,7 +169,7 @@
                     const statusLight = document.createElement('span');
                     statusLight.className = 'status-light';
                     
-                    if (measure.endDate && measure.endDate.trim() !== '') {
+                    if (measure.endDate && measure.endDate.trim() !== '' && measure.endDate.trim() !== '-') {
                         statusLight.classList.add('status-red');
                     } else {
                         statusLight.classList.add('status-green');
@@ -180,7 +189,7 @@
                     listItem.appendChild(measureHeader);
                     listItem.appendChild(measureDates);
                     
-                    if (measure.comment && measure.comment.trim() !== '') {
+                    if (measure.comment && measure.comment.trim() !== '' && measure.comment.trim() !== '-') {
                         const validComments = measure.comment.split('||')
                             .map(c => c.trim())
                             .filter(c => c !== '');
