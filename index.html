@@ -183,7 +183,11 @@
                     if (measure.comment) {
                         const commentsContainer = document.createElement('div');
                         commentsContainer.className = 'comments-container';
-                        const comments = measure.comment.split('\n');
+                        
+                        // --- CAMBIO CLAVE AQUÍ ---
+                        // Reemplazamos "\\n" (texto literal) por "\n" (salto de línea real)
+                        const cleanComment = measure.comment.replace(/\\n/g, '\n');
+                        const comments = cleanComment.split('\n');
 
                         comments.forEach(commentText => {
                             if (commentText.trim() !== '') {
@@ -205,10 +209,8 @@
             }
         }
         
-        // --- FUNCIÓN parseCSV MEJORADA Y MÁS ROBUSTA ---
         function parseCSV(text) {
             const result = [];
-            // Regex para separar filas, ignorando saltos de línea dentro de comillas
             const rows = text.trim().split(/\r?\n(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
             if (rows.length < 2) return result;
 
@@ -217,18 +219,15 @@
             for (let i = 1; i < rows.length; i++) {
                 if (rows[i].trim() === '') continue;
                 const obj = {};
-                // Regex para separar columnas, respetando las comillas
                 const values = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
 
                 for (let j = 0; j < headers.length; j++) {
                     if (!headers[j]) continue;
                     let value = (values[j] || '').trim();
                     
-                    // Quita las comillas del principio y del final
                     if (value.startsWith('"') && value.endsWith('"')) {
                         value = value.substring(1, value.length - 1);
                     }
-                    // Reemplaza las comillas dobles (escapadas) por una sola comilla
                     value = value.replace(/""/g, '"');
                     
                     obj[headers[j]] = value;
