@@ -5,87 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Alumnos</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .filter-container {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .filter-container label {
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        .filter-container select {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 1em;
-        }
-        #dashboard-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-        }
-        .student-card {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            padding: 20px;
-            width: 320px;
-            transition: transform 0.2s;
-        }
-        .student-card:hover {
-            transform: translateY(-5px);
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #333; }
+        .filters-wrapper { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+        .filter-container { text-align: center; }
+        .filter-container label { font-weight: bold; margin-right: 10px; display: block; margin-bottom: 5px; }
+        .filter-container select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+        #dashboard-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .student-card { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 20px; width: 320px; transition: transform 0.2s; }
+        .student-card:hover { transform: translateY(-5px); }
         .student-card h3 { margin-top: 0; color: #0056b3; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
         .student-card ul { list-style-type: none; padding: 0; }
         .student-card li { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 12px; margin-bottom: 10px; font-size: 1em; }
         .measure-title { font-weight: bold; color: #343a40; }
         .measure-dates { font-size: 0.8em; color: #6c757d; margin: 4px 0; display: block; }
-        
-        .comments-container {
-            margin-top: 8px;
-            border-left: 3px solid #007bff;
-            padding-left: 10px;
-        }
-        .comment-item {
-            font-size: 0.9em;
-            color: #495057;
-            margin-bottom: 4px;
-        }
+        .comments-container { margin-top: 8px; border-left: 3px solid #007bff; padding-left: 10px; }
+        .comment-item { font-size: 0.9em; color: #495057; margin-bottom: 4px; }
     </style>
 </head>
 <body>
-
     <h1>Dashboard de Medidas Educativas</h1>
 
-    <div class="filter-container">
-        <label for="class-filter">Filtrar por clase:</label>
-        <select id="class-filter" onchange="filterStudents()"></select>
+    <div class="filters-wrapper">
+        <div class="filter-container">
+            <label for="course-filter">Selecciona un curso:</label>
+            <select id="course-filter" onchange="handleCourseChange()">
+                </select>
+        </div>
+        <div class="filter-container" id="class-filter-container" style="display: none;">
+            <label for="class-filter">Filtrar por clase:</label>
+            <select id="class-filter" onchange="filterStudents()"></select>
+        </div>
     </div>
 
-    <div id="dashboard-container">
-        <p>Cargando datos de los alumnos...</p>
-    </div>
+    <div id="dashboard-container"><p>Por favor, selecciona un curso para empezar.</p></div>
 
     <script>
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=12873044&single=true&output=csv';
+        // --- PASO 3: PEGA TUS URLS AQUÍ ---
+        const courseUrls = {
+            "1º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=12873044&single=true&output=csv",
+            "2º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=586029925&single=true&output=csv",
+            "3º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=932856573&single=true&output=csv",
+            "4º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=889532458&single=true&output=csv",
+            "1º BTO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=1339435516&single=true&output=csv",
+            "2º BTO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=732396135&single=true&output=csv"
+            // Añade más cursos y URLs si es necesario
+        };
 
         let allStudents = {};
 
-        async function loadStudentData() {
+        // Función que se ejecuta cuando cambias el curso
+        function handleCourseChange() {
+            const selectedCourse = document.getElementById('course-filter').value;
+            if (selectedCourse) {
+                const url = courseUrls[selectedCourse];
+                loadStudentData(url);
+            } else {
+                // Limpiar todo si no hay curso seleccionado
+                document.getElementById('dashboard-container').innerHTML = '<p>Por favor, selecciona un curso para empezar.</p>';
+                document.getElementById('class-filter-container').style.display = 'none';
+            }
+        }
+
+        async function loadStudentData(csvUrl) {
+            document.getElementById('dashboard-container').innerHTML = '<p>Cargando datos del curso...</p>';
+            document.getElementById('class-filter-container').style.display = 'none'; // Ocultar filtro de clase mientras carga
+            allStudents = {}; // Limpiar datos anteriores
+
             try {
                 const response = await fetch(csvUrl);
-                if (!response.ok) throw new Error('Error al cargar los datos.');
+                if (!response.ok) throw new Error('Error al cargar los datos. Verifica que la URL es correcta y está publicada.');
                 
                 const csvText = await response.text();
                 const data = parseCSV(csvText);
@@ -109,15 +98,27 @@
                 
                 populateClassFilter();
                 displayDashboards(allStudents);
+                document.getElementById('class-filter-container').style.display = 'block'; // Mostrar filtro de clase
 
             } catch (error) {
                 document.getElementById('dashboard-container').innerHTML = `<p style="color: red;">${error.message}</p>`;
-                console.error(error);
+            }
+        }
+
+        // --- Nuevas funciones y modificaciones ---
+        function populateCourseFilter() {
+            const courseFilter = document.getElementById('course-filter');
+            courseFilter.innerHTML = '<option value="">-- Elige un curso --</option>'; // Opción por defecto
+            for (const courseName in courseUrls) {
+                const option = document.createElement('option');
+                option.value = courseName;
+                option.textContent = courseName;
+                courseFilter.appendChild(option);
             }
         }
 
         function populateClassFilter() {
-            const filter = document.getElementById('class-filter');
+            const classFilter = document.getElementById('class-filter');
             const classes = new Set();
             for (const studentName in allStudents) {
                 if (allStudents[studentName].class) {
@@ -125,114 +126,22 @@
                 }
             }
             const sortedClasses = [...classes].sort();
-            filter.innerHTML = '<option value="todos">Todas las clases</option>';
+            classFilter.innerHTML = '<option value="todos">Todas las clases</option>';
             sortedClasses.forEach(className => {
                 const option = document.createElement('option');
                 option.value = className;
                 option.textContent = className;
-                filter.appendChild(option);
+                classFilter.appendChild(option);
             });
         }
-
-        function filterStudents() {
-            const selectedClass = document.getElementById('class-filter').value;
-            const filteredStudents = {};
-
-            if (selectedClass === 'todos') {
-                displayDashboards(allStudents);
-                return;
-            }
-
-            for (const studentName in allStudents) {
-                if (allStudents[studentName].class === selectedClass) {
-                    filteredStudents[studentName] = allStudents[studentName];
-                }
-            }
-            displayDashboards(filteredStudents);
-        }
         
-        function displayDashboards(studentsToShow) {
-            const container = document.getElementById('dashboard-container');
-            container.innerHTML = '';
-            
-            if (Object.keys(studentsToShow).length === 0) {
-                 container.innerHTML = '<p>No hay alumnos para mostrar.</p>';
-                 return;
-            }
+        // El resto de funciones no necesitan grandes cambios
+        function filterStudents(){const selectedClass=document.getElementById("class-filter").value;if("todos"===selectedClass)return void displayDashboards(allStudents);const filteredStudents={};for(const studentName in allStudents)allStudents[studentName].class===selectedClass&&(filteredStudents[studentName]=allStudents[studentName]);displayDashboards(filteredStudents)}
+        function displayDashboards(studentsToShow){const container=document.getElementById("dashboard-container");if(container.innerHTML="",0===Object.keys(studentsToShow).length)return void(container.innerHTML="<p>No hay alumnos para mostrar.</p>");for(const studentName in studentsToShow){const studentData=studentsToShow[studentName],card=document.createElement("div");card.className="student-card";const title=document.createElement("h3");title.textContent=studentData.name;const measuresList=document.createElement("ul");studentData.measures.forEach(measure=>{const listItem=document.createElement("li"),measureTitle=document.createElement("span");measureTitle.className="measure-title",measureTitle.textContent=measure.title;const measureDates=document.createElement("span");measureDates.className="measure-dates",measureDates.textContent=`(${measure.startDate} - ${measure.endDate})`;listItem.appendChild(measureTitle),listItem.appendChild(measureDates),measure.comment&&(()=>{const commentsContainer=document.createElement("div");commentsContainer.className="comments-container";const comments=measure.comment.split("||");comments.forEach(commentText=>{if(""!==commentText.trim()){const commentP=document.createElement("p");commentP.className="comment-item",commentP.textContent=commentText.trim(),commentsContainer.appendChild(commentP)}}),listItem.appendChild(commentsContainer)})(),measuresList.appendChild(listItem)}),card.appendChild(title),card.appendChild(measuresList),container.appendChild(card)}}
+        function parseCSV(text){const result=[],rows=text.trim().split(/\r?\n(?=(?:[^"]*\"[^"]*\")*[^\"]*$)/);if(rows.length<2)return result;const headers=rows[0].split(",").map(h=>h.trim());for(let i=1;i<rows.length;i++){if(""===rows[i].trim())continue;const obj={},values=rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)||[];for(let j=0;j<headers.length;j++){if(!headers[j])continue;let value=values[j]||"";value=value.trim(),"\""===value.startsWith('"')&&"\""===value.endsWith('"')&&(value=value.substring(1,value.length-1)),value=value.replace(/""/g,'"'),obj[headers[j]]=value}result.push(obj)}return result}
 
-            for (const studentName in studentsToShow) {
-                const studentData = studentsToShow[studentName];
-                const card = document.createElement('div');
-                card.className = 'student-card';
-                const title = document.createElement('h3');
-                title.textContent = studentData.name;
-                const measuresList = document.createElement('ul');
-
-                studentData.measures.forEach(measure => {
-                    const listItem = document.createElement('li');
-                    const measureTitle = document.createElement('span');
-                    measureTitle.className = 'measure-title';
-                    measureTitle.textContent = measure.title;
-                    const measureDates = document.createElement('span');
-                    measureDates.className = 'measure-dates';
-                    measureDates.textContent = `(${measure.startDate} - ${measure.endDate})`;
-
-                    listItem.appendChild(measureTitle);
-                    listItem.appendChild(measureDates);
-
-                    if (measure.comment) {
-                        const commentsContainer = document.createElement('div');
-                        commentsContainer.className = 'comments-container';
-                        
-                        // --- CAMBIO CLAVE AQUÍ ---
-                        // Dividimos el comentario usando el separador "||"
-                        const comments = measure.comment.split('||');
-
-                        comments.forEach(commentText => {
-                            if (commentText.trim() !== '') {
-                                const commentP = document.createElement('p');
-                                commentP.className = 'comment-item';
-                                commentP.textContent = commentText.trim(); // Usamos trim() para quitar espacios
-                                commentsContainer.appendChild(commentP);
-                            }
-                        });
-                        
-                        listItem.appendChild(commentsContainer);
-                    }
-                    measuresList.appendChild(listItem);
-                });
-                
-                card.appendChild(title);
-                card.appendChild(measuresList);
-                container.appendChild(card);
-            }
-        }
-        
-        function parseCSV(text) {
-            const result = [];
-            const rows = text.trim().split(/\r?\n(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
-            if (rows.length < 2) return result;
-            const headers = rows[0].split(',').map(h => h.trim());
-            for (let i = 1; i < rows.length; i++) {
-                if (rows[i].trim() === '') continue;
-                const obj = {};
-                const values = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                for (let j = 0; j < headers.length; j++) {
-                    if (!headers[j]) continue;
-                    let value = (values[j] || '').trim();
-                    if (value.startsWith('"') && value.endsWith('"')) {
-                        value = value.substring(1, value.length - 1);
-                    }
-                    value = value.replace(/""/g, '"');
-                    obj[headers[j]] = value;
-                }
-                result.push(obj);
-            }
-            return result;
-        }
-
-        loadStudentData();
+        // Iniciar el filtro de cursos al cargar la página
+        populateCourseFilter();
     </script>
-
 </body>
 </html>
