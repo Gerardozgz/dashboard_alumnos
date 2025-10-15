@@ -12,15 +12,16 @@
         .filter-container label { font-weight: bold; margin-right: 10px; display: block; margin-bottom: 5px; }
         .filter-container select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
         
-        /* --- ESTE ES EL CSS CORRECTO Y FINAL --- */
+        /* --- ESTE ES EL CSS DEFINITIVO CON GRID --- */
         #dashboard-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center; /* Centra las fichas horizontalmente */
-            gap: 20px; /* Espacio entre las fichas */
-            align-items: flex-start; /* Evita que las fichas se estiren a la misma altura */
-            max-width: 1600px; /* Ancho máximo para pantallas grandes */
-            margin: 0 auto; /* Centra todo el contenedor en la página */
+            display: grid;
+            grid-gap: 20px;
+            /* Crea columnas automáticas de 320px de ancho */
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            /* Define la "altura" de cada ladrillo de la cuadrícula */
+            grid-auto-rows: 20px; 
+            max-width: 1600px;
+            margin: 0 auto;
         }
 
         .student-card {
@@ -28,11 +29,10 @@
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             padding: 20px;
-            width: 320px; /* Ancho fijo para cada ficha */
             box-sizing: border-box;
             transition: transform 0.2s;
         }
-        /* --- FIN DE LA SECCIÓN CSS CORRECTA --- */
+        /* --- FIN DE LA SECCIÓN CSS --- */
         
         .student-card:hover { transform: translateY(-5px); }
         .student-card h3 { margin-top: 0; color: #0056b3; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
@@ -52,31 +52,106 @@
 </head>
 <body>
     <h1>Dashboard de Medidas Educativas</h1>
-
-    <div class="filters-wrapper">
-        <div class="filter-container">
-            <label for="course-filter">Selecciona un curso:</label>
-            <select id="course-filter" onchange="handleCourseChange()"></select>
-        </div>
-        <div class="filter-container" id="class-filter-container" style="display: none;">
-            <label for="class-filter">Filtrar por clase:</label>
-            <select id="class-filter" onchange="filterStudents()"></select>
-        </div>
-    </div>
-
+    <div class="filters-wrapper"><div class="filter-container"><label for="course-filter">Selecciona un curso:</label><select id="course-filter" onchange="handleCourseChange()"></select></div><div class="filter-container" id="class-filter-container" style="display: none;"><label for="class-filter">Filtrar por clase:</label><select id="class-filter" onchange="filterStudents()"></select></div></div>
     <div id="dashboard-container"><p>Por favor, selecciona un curso para empezar.</p></div>
 
     <script>
-        // El JavaScript no necesita cambios, es el mismo de la última versión
-        const courseUrls={"1º ESO":"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=12873044&single=true&output=csv","2º ESO":"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=586029925&single=true&output=csv","3º ESO":"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=932856573&single=true&output=csv","4º ESO":"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=889532458&single=true&output=csv","1º BTO":"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=1339435516&single=true&output=csv","2º BTO":"https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=732396135&single=true&output=csv"};
-        let allStudents={};
-        function handleCourseChange(){const e=document.getElementById("course-filter").value;e?loadStudentData(courseUrls[e]):(document.getElementById("dashboard-container").innerHTML="<p>Por favor, selecciona un curso para empezar.</p>",document.getElementById("class-filter-container").style.display="none")}
-        async function loadStudentData(e){document.getElementById("dashboard-container").innerHTML="<p>Cargando datos del curso...</p>",document.getElementById("class-filter-container").style.display="none",allStudents={};try{const t=await fetch(e);if(!t.ok)throw new Error("Error al cargar los datos.");const o=await t.text(),n=parseCSV(o);n.forEach(e=>{const t=e.Nombre_Alumno;allStudents[t]||(allStudents[t]={name:t,class:e.Clase,measures:[]}),allStudents[t].measures.push({title:e.Medida_Educativa,comment:e.Comentario,startDate:e.Fecha_Inicio,endDate:e.Fecha_Fin})}),populateClassFilter(),displayDashboards(allStudents),document.getElementById("class-filter-container").style.display="block"}catch(e){document.getElementById("dashboard-container").innerHTML=`<p style="color: red;">${e.message}</p>`}}
-        function populateCourseFilter(){const e=document.getElementById("course-filter");e.innerHTML='<option value="">-- Elige un curso --</option>';for(const t in courseUrls){const o=document.createElement("option");o.value=t,o.textContent=t,e.appendChild(o)}}
-        function populateClassFilter(){const e=document.getElementById("class-filter"),t=new Set;for(const o in allStudents)allStudents[o].class&&t.add(allStudents[o].class);const o=[...t].sort();e.innerHTML='<option value="todos">Todas las clases</option>',o.forEach(t=>{const o=document.createElement("option");o.value=t,o.textContent=t,e.appendChild(o)})}
-        function displayDashboards(e){const t=document.getElementById("dashboard-container");if(t.innerHTML="",0===Object.keys(e).length)return void(t.innerHTML="<p>No hay alumnos para mostrar.</p>");for(const o in e){const n=e[o],a=document.createElement("div");a.className="student-card";const d=document.createElement("h3");d.textContent=n.name;const s=document.createElement("ul");n.measures.forEach(e=>{const o=document.createElement("li"),n=document.createElement("div");n.className="measure-header";const d=document.createElement("span");d.className="status-light",e.endDate&&""!==e.endDate.trim()&&"-"!==e.endDate.trim()?d.classList.add("status-red"):d.classList.add("status-green");const c=document.createElement("span");c.className="measure-title",c.textContent=e.title,n.appendChild(d),n.appendChild(c);const i=document.createElement("span");i.className="measure-dates",i.textContent=`(${e.startDate||""} - ${e.endDate||""})`,o.appendChild(n),o.appendChild(i),e.comment&&""!==e.comment.trim()&&"-"!==e.comment.trim()&&(()=>{const t=e.comment.split("||").map(e=>e.trim()).filter(e=>""!==e);if(t.length>0){const e=document.createElement("div");e.className="comments-container",t.forEach(t=>{const o=document.createElement("p");o.className="comment-item",o.textContent=t,e.appendChild(o)}),o.appendChild(e)}})(),s.appendChild(o)}),a.appendChild(d),a.appendChild(s),t.appendChild(a)}}
-        function filterStudents(){const e=document.getElementById("class-filter").value;if("todos"===e)return void displayDashboards(allStudents);const t={};for(const o in allStudents)allStudents[o].class===e&&(t[o]=allStudents[o]);displayDashboards(t)}
-        function parseCSV(e){const t=[],o=e.trim().split(/\r?\n(?=(?:[^"]*\"[^"]*\")*[^\"]*$)/);if(o.length<2)return t;const n=o[0].split(",").map(e=>e.trim());for(let e=1;e<o.length;e++){if(""===o[e].trim())continue;const a={},d=o[e].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)||[];for(let e=0;e<n.length;e++){if(!n[e])continue;let t=d[e]||"";t=t.trim(),'"'===t.startsWith('"')&&'"'===t.endsWith('"')&&(t=t.substring(1,t.length-1)),t=t.replace(/""/g,'"'),a[n[e]]=t}t.push(a)}return t}
+        const courseUrls = {
+            "1º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=12873044&single=true&output=csv",
+            "2º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=586029925&single=true&output=csv",
+            "3º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=932856573&single=true&output=csv",
+            "4º ESO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=889532458&single=true&output=csv",
+            "1º BTO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=1339435516&single=true&output=csv",
+            "2º BTO": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBLzBraZXaIdUUQIZpEsvgCwxwSfyd8PVfQG2vZZ7V_uz92y6T6LrV82KM4EYEp9QW7cPaZFXi4Zga/pub?gid=732396135&single=true&output=csv"
+        };
+        let allStudents = {};
+
+        function displayDashboards(studentsToShow) {
+            const container = document.getElementById('dashboard-container');
+            container.innerHTML = '';
+            
+            if (Object.keys(studentsToShow).length === 0) {
+                 container.innerHTML = "<p>No hay alumnos para mostrar.</p>";
+                 return;
+            }
+
+            for (const studentName in studentsToShow) {
+                // El código para crear cada tarjeta no cambia
+                const studentData = studentsToShow[studentName];
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                const title = document.createElement('h3');
+                title.textContent = studentData.name;
+                const measuresList = document.createElement('ul');
+
+                studentData.measures.forEach(measure => {
+                    const listItem = document.createElement('li');
+                    const measureHeader = document.createElement('div');
+                    measureHeader.className = 'measure-header';
+                    const statusLight = document.createElement('span');
+                    statusLight.className = 'status-light';
+                    if (measure.endDate && measure.endDate.trim() !== '' && measure.endDate.trim() !== '-') {
+                        statusLight.classList.add('status-red');
+                    } else {
+                        statusLight.classList.add('status-green');
+                    }
+                    const measureTitle = document.createElement('span');
+                    measureTitle.className = 'measure-title';
+                    measureTitle.textContent = measure.title;
+                    measureHeader.appendChild(statusLight);
+                    measureHeader.appendChild(measureTitle);
+                    const measureDates = document.createElement('span');
+                    measureDates.className = 'measure-dates';
+                    measureDates.textContent = `(${measure.startDate || ''} - ${measure.endDate || ''})`;
+                    listItem.appendChild(measureHeader);
+                    listItem.appendChild(measureDates);
+                    if (measure.comment && measure.comment.trim() !== '' && measure.comment.trim() !== '-') {
+                        const validComments = measure.comment.split('||').map(c => c.trim()).filter(c => c !== '');
+                        if (validComments.length > 0) {
+                            const commentsContainer = document.createElement('div');
+                            commentsContainer.className = 'comments-container';
+                            validComments.forEach(commentText => {
+                                const commentP = document.createElement('p');
+                                commentP.className = 'comment-item';
+                                commentP.textContent = commentText;
+                                commentsContainer.appendChild(commentP);
+                            });
+                            listItem.appendChild(commentsContainer);
+                        }
+                    }
+                    measuresList.appendChild(listItem);
+                });
+                
+                card.appendChild(title);
+                card.appendChild(measuresList);
+                container.appendChild(card);
+            }
+            // --- CAMBIO CLAVE EN JAVASCRIPT ---
+            // Una vez todas las fichas están en la página, llamamos a la función que las ajusta.
+            applyMasonryLayout();
+        }
+
+        // --- NUEVA FUNCIÓN PARA AJUSTAR LAS FICHAS ---
+        function applyMasonryLayout() {
+            const container = document.getElementById('dashboard-container');
+            const cards = container.querySelectorAll('.student-card');
+            cards.forEach(card => {
+                // 1. Obtenemos la altura real de la ficha
+                const cardHeight = card.offsetHeight;
+                // 2. Calculamos cuántos "ladrillos" de 20px de alto necesita
+                const rowSpan = Math.ceil(cardHeight / 20);
+                // 3. Le decimos a la ficha que ocupe ese número de ladrillos
+                card.style.gridRowEnd = `span ${rowSpan}`;
+            });
+        }
+        
+        // El resto de funciones no necesitan cambios
+        async function loadStudentData(csvUrl){document.getElementById("dashboard-container").innerHTML='<p>Cargando datos del curso...</p>',document.getElementById("class-filter-container").style.display="none",allStudents={};try{const response=await fetch(csvUrl);if(!response.ok)throw new Error("Error al cargar los datos.");const csvText=await response.text(),data=parseCSV(csvText);data.forEach(row=>{const studentName=row.Nombre_Alumno;allStudents[studentName]||(allStudents[studentName]={name:studentName,class:row.Clase,measures:[]}),allStudents[studentName].measures.push({title:row.Medida_Educativa,comment:row.Comentario,startDate:row.Fecha_Inicio,endDate:row.Fecha_Fin})}),populateClassFilter(),displayDashboards(allStudents),document.getElementById("class-filter-container").style.display="block"}catch(error){document.getElementById("dashboard-container").innerHTML=`<p style="color: red;">${error.message}</p>`}}
+        function handleCourseChange(){const selectedCourse=document.getElementById("course-filter").value;if(selectedCourse){loadStudentData(courseUrls[selectedCourse])}else{document.getElementById("dashboard-container").innerHTML='<p>Por favor, selecciona un curso para empezar.</p>',document.getElementById("class-filter-container").style.display="none"}}
+        function populateCourseFilter(){const courseFilter=document.getElementById("course-filter");courseFilter.innerHTML='<option value="">-- Elige un curso --</option>';for(const courseName in courseUrls){const option=document.createElement("option");option.value=courseName,option.textContent=courseName,courseFilter.appendChild(option)}}
+        function populateClassFilter(){const classFilter=document.getElementById("class-filter"),classes=new Set;for(const studentName in allStudents)allStudents[studentName].class&&classes.add(allStudents[studentName].class);const sortedClasses=[...classes].sort();classFilter.innerHTML='<option value="todos">Todas las clases</option>',sortedClasses.forEach(className=>{const option=document.createElement("option");option.value=className,option.textContent=className,classFilter.appendChild(option)})}
+        function filterStudents(){const selectedClass=document.getElementById("class-filter").value;if("todos"===selectedClass)return void displayDashboards(allStudents);const filteredStudents={};for(const studentName in allStudents)allStudents[studentName].class===selectedClass&&(filteredStudents[studentName]=allStudents[studentName]);displayDashboards(filteredStudents)}
+        function parseCSV(text){const result=[],rows=text.trim().split(/\r?\n(?=(?:[^"]*\"[^"]*\")*[^\"]*$)/);if(rows.length<2)return result;const headers=rows[0].split(",").map(h=>h.trim());for(let i=1;i<rows.length;i++){if(""===rows[i].trim())continue;const obj={},values=rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)||[];for(let j=0;j<headers.length;j++){if(!headers[j])continue;let value=values[j]||"";value=value.trim(),"\""===value.startsWith('"')&&"\""===value.endsWith('"')&&(value=value.substring(1,value.length-1)),value=value.replace(/""/g,'"'),obj[headers[j]]=value}result.push(obj)}return result}
         populateCourseFilter();
     </script>
 </body>
